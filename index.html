@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FF85A1">
+<title>🐰 단어 친구</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Round+Square:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pk:#FF85A1;--pkl:#FFE0E9;--pkm:#FFAEC9;
+  --lv:#C9A8FF;--lvl:#EDE0FF;
+  --mt:#7EDCB5;--mtl:#D0F5E8;
+  --yw:#FFD86E;--pc:#FFAB76;
+  --bg:#FFF5F9;--tx:#4A3560;--mu:#9B8BAE;
+  --r:18px;--rs:11px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Nanum Round Square',sans-serif;background:var(--bg);color:var(--tx)}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;position:relative;background:var(--bg)}
+
+/* ── HEADER ── */
+.hdr{flex-shrink:0;background:linear-gradient(135deg,var(--pk) 0%,var(--lv) 100%);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 16px rgba(255,133,161,.35)}
+.hl{display:flex;align-items:center;gap:8px}
+.bunny{font-size:26px;animation:bob 2s ease-in-out infinite;display:inline-block}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.htit{font-family:'Jua',sans-serif;color:#fff;font-size:19px;line-height:1.1}
+.hsub{font-size:10px;color:rgba(255,255,255,.8)}
+.hbadge{background:rgba(255,255,255,.28);border-radius:20px;padding:5px 13px;color:#fff;font-family:'Jua',sans-serif;font-size:13px;border:1.5px solid rgba(255,255,255,.45);cursor:pointer}
+
+/* ── PAGES ── */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px 14px 0}
+.pg{display:none;padding-bottom:16px}
+.pg.on{display:block}
+
+/* ── NAV ── */
+.nav{flex-shrink:0;display:flex;background:#fff;border-top:2px solid var(--pkl);box-shadow:0 -3px 14px rgba(255,133,161,.12)}
+.nb{flex:1;padding:8px 2px 6px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--mu);font-family:'Nanum Round Square',sans-serif;font-size:9px;transition:all .2s;position:relative}
+.nb .ni{font-size:19px;transition:transform .2s}
+.nb.on{color:var(--pk)}
+.nb.on .ni{transform:scale(1.2)}
+.nb.on::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--pk);border-radius:2px 2px 0 0}
+
+/* ── CARDS & BUTTONS ── */
+.card{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 3px 12px rgba(74,53,96,.07);margin-bottom:12px}
+.ctit{font-family:'Jua',sans-serif;font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:5px;color:var(--tx)}
+.btn{border:none;border-radius:var(--rs);padding:11px 16px;font-family:'Jua',sans-serif;font-size:14px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:5px;text-decoration:none}
+.btn:active{transform:scale(.95)}
+.bp{background:linear-gradient(135deg,var(--pk),var(--lv));color:#fff;box-shadow:0 3px 12px rgba(255,133,161,.38)}
+.bm{background:linear-gradient(135deg,var(--mt),#52C49A);color:#fff;box-shadow:0 3px 12px rgba(126,220,181,.38)}
+.by{background:linear-gradient(135deg,var(--yw),var(--pc));color:#fff}
+.bs{background:var(--pkl);color:var(--pk)}
+.bo{background:#fff;border:2px solid var(--pkl);color:var(--tx)}
+.bd{background:linear-gradient(135deg,#EF4444,#EC4899);color:#fff}
+.bbl{width:100%}
+.bsm{padding:7px 12px;font-size:12px}
+.inp{width:100%;border:2px solid var(--pkl);border-radius:var(--rs);padding:11px 14px;font-family:'Nanum Round Square',sans-serif;font-size:14px;color:var(--tx);background:var(--bg);outline:none;transition:border .2s}
+.inp:focus{border-color:var(--pk);background:#fff}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+.mt16{margin-top:16px}
+.gap8{display:flex;gap:8px}
+
+/* ══════════════════════════════
+   API KEY SETUP SCREEN
+══════════════════════════════ */
+#apiScreen{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;max-width:480px;margin:0 auto}
+.api-hero{text-align:center;margin-bottom:28px}
+.api-hero-emoji{font-size:64px;animation:bob 2s ease-in-out infinite;display:block;margin-bottom:12px}
+.api-hero-title{font-family:'Jua',sans-serif;font-size:24px;color:var(--tx);margin-bottom:8px}
+.api-hero-sub{font-size:13px;color:var(--mu);line-height:1.7}
+.api-card{background:#fff;border-radius:24px;padding:22px 20px;width:100%;box-shadow:0 6px 24px rgba(74,53,96,.1);margin-bottom:16px}
+.api-steps{margin-bottom:16px}
+.api-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+.api-step-num{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--pk),var(--lv));color:#fff;font-family:'Jua',sans-serif;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.api-step-text{font-size:13px;color:var(--tx);line-height:1.6;flex:1}
+.api-step-text a{color:var(--lv);text-decoration:none;font-weight:700}
+.api-inp-wrap{position:relative;margin-bottom:10px}
+.api-inp{width:100%;border:2px solid var(--pkl);border-radius:var(--rs);padding:12px 44px 12px 14px;font-family:'Nanum Round Square',sans-serif;font-size:14px;color:var(--tx);background:var(--bg);outline:none;transition:border .2s}
+.api-inp:focus{border-color:var(--pk);background:#fff}
+.api-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--mu)}
+.api-note{font-size:11px;color:var(--mu);text-align:center;line-height:1.5}
+
+/* ══════════════════════════════
+   UPLOAD PAGE
+══════════════════════════════ */
+.upload-hero{text-align:center;padding:10px 0 16px}
+.upload-emoji{font-size:52px;animation:bob 2s ease-in-out infinite;display:inline-block}
+.upload-title{font-family:'Jua',sans-serif;font-size:18px;margin-top:8px}
+.upload-sub{font-size:12px;color:var(--mu);margin-top:4px;line-height:1.6}
+.dz{border:3px dashed var(--pkm);border-radius:20px;padding:26px 16px;text-align:center;background:var(--pkl);cursor:pointer;transition:all .3s;margin-bottom:12px;position:relative}
+.dz:active{border-color:var(--pk);background:#ffd0de}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-ic{font-size:38px;margin-bottom:8px;display:block}
+.dz-t{font-family:'Jua',sans-serif;font-size:15px;color:var(--pk)}
+.dz-s{font-size:11px;color:var(--mu);margin-top:3px}
+.prev-img{width:100%;border-radius:14px;max-height:200px;object-fit:contain;background:#f8f0ff;border:2px solid var(--pkl);margin-bottom:12px;display:block}
+.spin-wrap{text-align:center;padding:20px 0}
+.spinner{display:inline-block;width:44px;height:44px;border:4px solid var(--pkl);border-top-color:var(--pk);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-t{font-family:'Jua',sans-serif;font-size:15px;color:var(--tx)}
+.spin-sub{font-size:11px;color:var(--mu);margin-top:4px}
+.wp-item{display:flex;gap:8px;align-items:center;background:var(--lvl);border-radius:10px;padding:9px 12px;margin-bottom:7px}
+.wp-en{font-family:'Jua',sans-serif;font-size:15px;flex:1}
+.wp-ko{font-size:12px;color:var(--mu)}
+.err-box{background:#FEE2E2;border:2px solid #FCA5A5;border-radius:14px;padding:14px;margin-bottom:12px}
+.err-tit{font-family:'Jua',sans-serif;font-size:14px;color:#EF4444;margin-bottom:6px}
+.err-msg{font-size:13px;color:#7f2c2c;line-height:1.5}
+
+/* ══════════════════════════════
+   FLASHCARD
+══════════════════════════════ */
+.sbar{display:flex;align-items:center;gap:5px;margin-bottom:12px}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--pkl);transition:all .3s;flex-shrink:0}
+.sdot.done{background:var(--mt)}
+.sdot.cur{background:var(--pk);transform:scale(1.35)}
+.slbl{font-family:'Jua',sans-serif;font-size:12px;color:var(--pk);margin-left:auto}
+.fc{background:linear-gradient(150deg,#fff 0%,var(--pkl) 100%);border-radius:24px;padding:28px 20px;text-align:center;min-height:256px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px solid var(--pkm);transition:opacity .2s,transform .2s;user-select:none;box-shadow:0 8px 28px rgba(255,133,161,.18)}
+.fc-num{font-size:11px;color:var(--mu);background:var(--pkl);border-radius:20px;padding:2px 10px;font-family:'Jua',sans-serif}
+.fc-em{font-size:52px;animation:bob 2.5s ease-in-out infinite}
+.fc-w{font-family:'Jua',sans-serif;font-size:34px;color:var(--tx)}
+.fc-ko{font-size:20px;color:var(--pk);font-weight:800}
+.fc-def{font-size:12px;color:var(--mu);line-height:1.7;max-width:260px}
+.fc-nav{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:8px}
+.dots{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;max-width:160px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--pkl);transition:all .2s}
+.dot.a{background:var(--pk);transform:scale(1.4)}
+
+/* ══════════════════════════════
+   QUIZ
+══════════════════════════════ */
+.qhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px}
+.qcnt{font-family:'Jua',sans-serif;font-size:20px}
+.scrow{display:flex;gap:6px}
+.sch{background:#fff;border-radius:16px;padding:4px 10px;font-family:'Jua',sans-serif;font-size:12px;box-shadow:0 2px 6px rgba(74,53,96,.1)}
+.pbw{background:var(--pkl);border-radius:8px;height:8px;margin-bottom:14px;overflow:hidden}
+.pb{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--pk),var(--lv));transition:width .5s}
+.qcard{background:#fff;border-radius:20px;padding:20px 16px;box-shadow:0 5px 18px rgba(74,53,96,.09);text-align:center}
+.qem{font-size:40px;margin-bottom:6px}
+.qq{font-family:'Jua',sans-serif;font-size:22px;color:var(--tx);line-height:1.3;margin-bottom:3px}
+.qhint{font-size:11px;color:var(--mu);margin-bottom:12px}
+.mtog{display:flex;background:var(--pkl);border-radius:9px;padding:3px;margin-bottom:12px;gap:3px}
+.mb{flex:1;padding:7px;border:none;border-radius:7px;background:none;cursor:pointer;font-family:'Jua',sans-serif;font-size:12px;color:var(--mu);transition:all .2s}
+.mb.on{background:#fff;color:var(--pk);box-shadow:0 1px 4px rgba(255,133,161,.2)}
+.anw{display:flex;gap:7px;margin-bottom:10px}
+.ani{flex:1;border:2px solid var(--pkl);border-radius:10px;padding:12px;font-family:'Jua',sans-serif;font-size:18px;color:var(--tx);background:var(--bg);outline:none;text-align:center;transition:all .2s}
+.ani:focus{border-color:var(--pk);background:#fff}
+.vbtn{width:46px;height:46px;border:none;border-radius:12px;background:var(--lvl);color:var(--lv);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.vbtn.on{background:var(--lv);color:#fff;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.vdisp{background:var(--lvl);border-radius:10px;padding:11px;text-align:center;min-height:50px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.vwave{display:flex;gap:3px;align-items:center}
+.vb{width:3px;background:var(--lv);border-radius:2px;animation:wv .8s ease-in-out infinite}
+@keyframes wv{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.7)}}
+.fb{border-radius:10px;padding:11px;margin-bottom:10px;display:none}
+.fb.ok{background:#D1FAE5;border:2px solid #6EE7B7}
+.fb.ng{background:#FEE2E2;border:2px solid #FCA5A5}
+.fbt{font-family:'Jua',sans-serif;font-size:14px}
+.fba{color:#C026D3;font-size:1.15em;background:#F5E6FF;border-radius:14px;padding:1px 10px;display:inline-block;margin-top:3px}
+.qact{display:flex;gap:7px}
+.qact .btn{flex:1}
+
+/* ══════════════════════════════
+   RESULT
+══════════════════════════════ */
+.rhero{text-align:center;padding:14px 0 10px}
+.rem{font-size:56px;animation:bounce 1s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.rmsg{font-family:'Jua',sans-serif;font-size:20px;margin-top:6px}
+.rpct{font-size:30px;font-family:'Jua',sans-serif;color:var(--pk);margin-top:2px}
+.rcards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.rc{border-radius:10px;padding:14px;text-align:center}
+.rc.ok{background:var(--mtl)}
+.rc.ng{background:#FEE2E2}
+.rcn{font-family:'Jua',sans-serif;font-size:28px}
+.rcl{font-size:11px;color:var(--mu);margin-top:2px}
+.wl{background:#fff;border-radius:10px;padding:12px;margin-bottom:12px}
+.wlt{font-family:'Jua',sans-serif;font-size:14px;margin-bottom:8px}
+.wli{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--pkl)}
+.wli:last-child{border-bottom:none}
+.wlw{font-family:'Jua',sans-serif;font-size:14px;flex:1}
+.wlk{font-size:12px;color:var(--mu)}
+.racts{display:flex;flex-direction:column;gap:7px}
+
+/* ══════════════════════════════
+   WORDBOOK
+══════════════════════════════ */
+.wi{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border-radius:10px;margin-bottom:7px;box-shadow:0 2px 6px rgba(74,53,96,.05)}
+.win{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--pk),var(--lv));color:#fff;font-family:'Jua',sans-serif;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wii{flex:1;min-width:0}
+.wie{font-family:'Jua',sans-serif;font-size:15px}
+.wik{font-size:11px;color:var(--mu)}
+.wid{background:none;border:none;color:var(--mu);font-size:15px;cursor:pointer;padding:3px;border-radius:7px;transition:all .2s}
+.wid:active{background:#FEE2E2;color:#EF4444}
+
+/* ══════════════════════════════
+   EMPTY STATE
+══════════════════════════════ */
+.es{text-align:center;padding:36px 20px;color:var(--mu)}
+.esi{font-size:44px;margin-bottom:8px;animation:bob 2s ease-in-out infinite;display:block}
+.est{font-family:'Jua',sans-serif;font-size:15px}
+
+/* ══════════════════════════════
+   MODAL
+══════════════════════════════ */
+.movl{position:fixed;inset:0;background:rgba(74,53,96,.45);backdrop-filter:blur(4px);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
+.movl.on{display:flex}
+.modal{background:#fff;border-radius:24px;padding:24px 20px;max-width:360px;width:100%;text-align:center;animation:scIn .28s ease}
+@keyframes scIn{from{transform:scale(.82);opacity:0}to{transform:scale(1);opacity:1}}
+.mic{font-size:40px;margin-bottom:8px}
+.mtit{font-family:'Jua',sans-serif;font-size:18px;margin-bottom:6px}
+.msub{font-size:13px;color:var(--mu);margin-bottom:16px;line-height:1.6}
+.mbtns{display:flex;flex-direction:column;gap:8px}
+
+/* ══════════════════════════════
+   TOAST
+══════════════════════════════ */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--tx);color:#fff;border-radius:16px;padding:9px 18px;font-family:'Jua',sans-serif;font-size:13px;z-index:250;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none;max-width:90vw;text-overflow:ellipsis;overflow:hidden}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══════════════════════════════
+   INSTALL BANNER
+══════════════════════════════ */
+.ibanner{position:fixed;bottom:65px;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:452px;background:linear-gradient(135deg,var(--pk),var(--lv));border-radius:16px;padding:12px 16px;display:none;align-items:center;gap:10px;z-index:90;box-shadow:0 4px 18px rgba(255,133,161,.38)}
+.ibanner.on{display:flex}
+.ib-txt{flex:1;color:#fff;font-size:12px}
+.ib-txt strong{font-family:'Jua',sans-serif;font-size:14px;display:block}
+.ib-close{background:none;border:none;color:rgba(255,255,255,.8);font-size:16px;cursor:pointer;padding:4px}
+</style>
+</head>
+<body>
+
+<!-- ══ API KEY SETUP SCREEN ══ -->
+<div id="apiScreen">
+  <div class="api-hero">
+    <span class="api-hero-emoji">🐰</span>
+    <div class="api-hero-title">처음 오셨군요!</div>
+    <div class="api-hero-sub">단어 친구를 사용하려면<br>Anthropic API 키가 필요해요<br><span style="color:var(--pk);font-weight:700">무료로 발급받을 수 있어요!</span></div>
+  </div>
+  <div class="api-card">
+    <div class="api-steps">
+      <div class="api-step">
+        <div class="api-step-num">1</div>
+        <div class="api-step-text"><a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> 접속 후 구글 계정으로 가입해요 (무료 크레딧 $5 제공!)</div>
+      </div>
+      <div class="api-step">
+        <div class="api-step-num">2</div>
+        <div class="api-step-text">로그인 후 좌측 메뉴 <strong>API Keys</strong> → <strong>Create Key</strong> 클릭</div>
+      </div>
+      <div class="api-step">
+        <div class="api-step-num">3</div>
+        <div class="api-step-text">생성된 키(sk-ant-로 시작)를 복사해서 아래에 붙여넣기</div>
+      </div>
+    </div>
+    <div class="api-inp-wrap">
+      <input class="api-inp" id="apiKeyInp" type="password" placeholder="sk-ant-api03-...">
+      <button class="api-eye" onclick="toggleApiVis()">👁️</button>
+    </div>
+    <button class="btn bp bbl" onclick="saveApiKey()">✅ 저장하고 시작하기</button>
+    <div class="api-note mt8">🔒 API 키는 이 기기에만 저장돼요<br>다른 곳에 전송되지 않아요</div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="app" style="display:none">
+  <header class="hdr">
+    <div class="hl">
+      <span class="bunny">🐰</span>
+      <div>
+        <div class="htit">단어 친구</div>
+        <div class="hsub">사진으로 단어 학습!</div>
+      </div>
+    </div>
+    <div class="hbadge" onclick="showApiSettings()">📚 <span id="hc">0</span>개</div>
+  </header>
+
+  <div class="scroll" id="scroll">
+    <!-- UPLOAD -->
+    <div class="pg on" id="pg-up">
+      <div class="upload-hero">
+        <span class="upload-emoji">📸</span>
+        <div class="upload-title">단어장 사진을 올려주세요</div>
+        <div class="upload-sub">AI가 사진 속 영어 단어를 읽고<br>자동으로 단어장을 만들어줘요!</div>
+      </div>
+
+      <div class="dz" id="dz">
+        <input type="file" id="fi" accept="image/*" onchange="handleFile(this.files[0])">
+        <span class="dz-ic">📷</span>
+        <div class="dz-t">탭해서 사진 올리기</div>
+        <div class="dz-s">카메라로 찍거나 갤러리에서 선택</div>
+      </div>
+
+      <div id="prevSec" style="display:none">
+        <img id="prevImg" class="prev-img">
+        <div id="analyzeArea">
+          <button class="btn bp bbl" onclick="analyzeImage()">🔍 AI로 단어 분석하기</button>
+        </div>
+      </div>
+
+      <div id="analyzingSec" style="display:none">
+        <div class="spin-wrap">
+          <div class="spinner"></div>
+          <div class="spin-t">AI가 단어를 읽고 있어요...</div>
+          <div class="spin-sub">잠시만 기다려주세요 ☕</div>
+        </div>
+      </div>
+
+      <div id="resultSec" style="display:none">
+        <div class="card">
+          <div class="ctit">✨ 발견된 단어들</div>
+          <div id="wpList"></div>
+          <div class="gap8 mt12">
+            <button class="btn bo" style="flex:1" onclick="resetUpload()">🔄 다시</button>
+            <button class="btn bp" style="flex:2" onclick="saveAndStudy()">📖 저장 후 학습!</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="errSec" style="display:none">
+        <div class="err-box">
+          <div class="err-tit">❌ 오류 발생</div>
+          <div class="err-msg" id="errMsg"></div>
+        </div>
+        <div class="gap8">
+          <button class="btn bo" style="flex:1" onclick="resetUpload()">🔄 다시</button>
+          <button class="btn bs" style="flex:1" onclick="showApiSettings()">🔑 API키 변경</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="pg" id="pg-s1">
+      <div class="sbar">
+        <div class="sdot cur" id="sd1_1"></div>
+        <div class="sdot" id="sd1_2"></div>
+        <div class="sdot" id="sd1_3"></div>
+        <div class="sdot" id="sd1_4"></div>
+        <span class="slbl">1단계 · 보고 외우기</span>
+      </div>
+      <div id="s1w">
+        <div class="fc" id="fc" ontouchstart="fTS(event)" ontouchend="fTE(event)">
+          <div class="fc-num" id="fcn">1 / 1</div>
+          <div class="fc-em" id="fce">🐰</div>
+          <div class="fc-w" id="fcw">단어</div>
+          <div class="fc-ko" id="fck">한글 뜻</div>
+          <div class="fc-def" id="fcd">English definition here</div>
+        </div>
+        <div class="fc-nav mt12">
+          <button class="btn bo bsm" onclick="fmv(-1)">◀</button>
+          <div class="dots" id="fcdots"></div>
+          <button class="btn bo bsm" onclick="fmv(1)">▶</button>
+        </div>
+        <div style="font-family:'Jua',sans-serif;font-size:12px;color:var(--mu);text-align:center;margin-top:6px">← 좌우로 스와이프하거나 버튼을 눌러요</div>
+      </div>
+      <div id="s1e" class="es" style="display:none">
+        <span class="esi">📸</span>
+        <div class="est">사진을 먼저 올려주세요!</div>
+        <button class="btn bp mt16" onclick="sp('up')">📷 사진 올리기</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="pg" id="pg-s2">
+      <div class="sbar">
+        <div class="sdot done"></div><div class="sdot cur"></div><div class="sdot"></div><div class="sdot"></div>
+        <span class="slbl">2단계 · 한글 뜻 맞추기</span>
+      </div>
+      <div id="s2w"></div>
+      <div id="s2e" class="es" style="display:none"><span class="esi">🐹</span><div class="est">사진을 먼저 올려주세요!</div><button class="btn bp mt16" onclick="sp('up')">📷 사진 올리기</button></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="pg" id="pg-s3">
+      <div class="sbar">
+        <div class="sdot done"></div><div class="sdot done"></div><div class="sdot cur"></div><div class="sdot"></div>
+        <span class="slbl">3단계 · 영어 단어 쓰기</span>
+      </div>
+      <div id="s3w"></div>
+      <div id="s3e" class="es" style="display:none"><span class="esi">🐶</span><div class="est">사진을 먼저 올려주세요!</div><button class="btn bp mt16" onclick="sp('up')">📷 사진 올리기</button></div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="pg" id="pg-s4">
+      <div class="sbar">
+        <div class="sdot done"></div><div class="sdot done"></div><div class="sdot done"></div><div class="sdot cur"></div>
+        <span class="slbl">4단계 · 영어 설명 맞추기</span>
+      </div>
+      <div id="s4w"></div>
+      <div id="s4e" class="es" style="display:none"><span class="esi">🐱</span><div class="est">사진을 먼저 올려주세요!</div><button class="btn bp mt16" onclick="sp('up')">📷 사진 올리기</button></div>
+    </div>
+
+    <!-- WORDBOOK -->
+    <div class="pg" id="pg-wb">
+      <div class="mt8">
+        <input class="inp" id="wbs" placeholder="🔍 단어 검색..." oninput="rWB()" style="margin-bottom:10px">
+      </div>
+      <div id="wbl"></div>
+      <div id="wbe" class="es" style="display:none"><span class="esi">📚</span><div class="est">단어장이 비어있어요</div></div>
+      <div style="margin-top:12px;padding-bottom:8px">
+        <button class="btn bo bbl bsm" onclick="cfClear()">🗑️ 단어장 전체 삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nb on" id="nav-up" onclick="sp('up')"><span class="ni">📷</span><span>사진</span></button>
+    <button class="nb" id="nav-s1" onclick="sp('s1')"><span class="ni">👀</span><span>1단계</span></button>
+    <button class="nb" id="nav-s2" onclick="sp('s2')"><span class="ni">🎤</span><span>2단계</span></button>
+    <button class="nb" id="nav-s3" onclick="sp('s3')"><span class="ni">✏️</span><span>3단계</span></button>
+    <button class="nb" id="nav-s4" onclick="sp('s4')"><span class="ni">📖</span><span>4단계</span></button>
+    <button class="nb" id="nav-wb" onclick="sp('wb')"><span class="ni">📚</span><span>단어장</span></button>
+  </nav>
+</div>
+
+<!-- MODAL -->
+<div class="movl" id="modal">
+  <div class="modal">
+    <div class="mic" id="mic"></div>
+    <div class="mtit" id="mtit"></div>
+    <div class="msub" id="msub"></div>
+    <div class="mbtns" id="mbtns"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- INSTALL BANNER -->
+<div class="ibanner" id="ibanner">
+  <span style="font-size:26px">🐰</span>
+  <div class="ib-txt">
+    <strong>홈 화면에 추가하세요!</strong>
+    앱처럼 편하게 사용할 수 있어요
+  </div>
+  <button class="btn bsm" style="background:#fff;color:var(--pk);flex-shrink:0" id="installBtn">설치</button>
+  <button class="ib-close" onclick="document.getElementById('ibanner').classList.remove('on')">✕</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONSTANTS & STATE
+// ══════════════════════════════════════════
+const SK = 'dv5';
+const EMOJIS = ['🐰','🐹','🐶','🐱','🐨','🦊','🐸','🐼','🦁','🐯','🐻','🐼'];
+const PAGES = ['up','s1','s2','s3','s4','wb'];
+
+let words = [];
+let apiKey = '';
+let curImg = null;
+let anaWords = [];
+let fcIdx = 0, fcWds = [];
+let qs = {};
+let rec = null;
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+function init() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SK) || '{}');
+    words = d.words || [];
+    apiKey = d.apiKey || '';
+  } catch(e) { words = []; apiKey = ''; }
+
+  if (apiKey && apiKey.startsWith('sk-')) {
+    document.getElementById('apiScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    updHdr();
+    setupPWA();
+  } else {
+    document.getElementById('apiScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+}
+
+function save() {
+  localStorage.setItem(SK, JSON.stringify({ words, apiKey }));
+  updHdr();
+}
+
+function updHdr() {
+  document.getElementById('hc').textContent = words.length;
+}
+
+// ══════════════════════════════════════════
+//  API KEY
+// ══════════════════════════════════════════
+function toggleApiVis() {
+  const inp = document.getElementById('apiKeyInp');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function saveApiKey() {
+  const k = document.getElementById('apiKeyInp').value.trim();
+  if (!k) { showToastGlobal('API 키를 입력해주세요!'); return; }
+  if (!k.startsWith('sk-')) { showToastGlobal('올바른 API 키 형식이 아니에요. sk-로 시작해야 해요!'); return; }
+  apiKey = k;
+  save();
+  document.getElementById('apiScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  updHdr();
+  setupPWA();
+  toast('✅ API 키 저장 완료!');
+}
+
+function showApiSettings() {
+  showModal('🔑', 'API 키 설정', `현재 API 키: ${apiKey.slice(0,12)}...`, [
+    { label: '🔄 API 키 변경', cls: 'bp', fn() { hModal(); document.getElementById('apiScreen').style.display = 'flex'; document.getElementById('app').style.display = 'none'; document.getElementById('apiKeyInp').value = apiKey; } },
+    { label: '닫기', cls: 'bo', fn() { hModal(); } }
+  ]);
+}
+
+// ══════════════════════════════════════════
+//  PAGE NAV
+// ══════════════════════════════════════════
+function sp(id) {
+  PAGES.forEach(p => {
+    document.getElementById('pg-'+p)?.classList.remove('on');
+    document.getElementById('nav-'+p)?.classList.remove('on');
+  });
+  document.getElementById('pg-'+id)?.classList.add('on');
+  document.getElementById('nav-'+id)?.classList.add('on');
+  document.getElementById('scroll').scrollTop = 0;
+  if (id === 's1') initS1();
+  if (id === 's2') initQ(2);
+  if (id === 's3') initQ(3);
+  if (id === 's4') initQ(4);
+  if (id === 'wb') rWB();
+  stopRec();
+}
+
+// ══════════════════════════════════════════
+//  UPLOAD & ANALYZE
+// ══════════════════════════════════════════
+function handleFile(f) {
+  if (!f || !f.type.startsWith('image/')) { toast('이미지 파일만 올려주세요!'); return; }
+  const r = new FileReader();
+  r.onload = e => {
+    curImg = e.target.result;
+    document.getElementById('prevImg').src = curImg;
+    document.getElementById('dz').style.display = 'none';
+    document.getElementById('prevSec').style.display = 'block';
+    document.getElementById('resultSec').style.display = 'none';
+    document.getElementById('analyzingSec').style.display = 'none';
+    document.getElementById('errSec').style.display = 'none';
+    document.getElementById('analyzeArea').style.display = 'block';
+  };
+  r.readAsDataURL(f);
+}
+
+async function analyzeImage() {
+  if (!curImg) return;
+  document.getElementById('analyzeArea').style.display = 'none';
+  document.getElementById('analyzingSec').style.display = 'block';
+  document.getElementById('scroll').scrollTop = 0;
+
+  const [hdr, b64] = curImg.split(',');
+  const mt = hdr.match(/:(.*?);/)[1];
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mt, data: b64 } },
+            { type: 'text', text: `이 영어 단어장 사진에서 단어 정보를 추출해주세요.
+반드시 아래 JSON 형식으로만 답하세요 (설명 없이 JSON만):
+[{"word":"영어단어","korean":"한글뜻","definition":"사진에 있는 영어 설명 문장"}]
+규칙:
+- word: 소문자 영어 단어
+- korean: 사진에 있는 한글 뜻 그대로 (없으면 번역해서 제공)
+- definition: 사진에 있는 영어 설명 문장 그대로 (없으면 간단히 만들어줘)
+JSON 배열만 반환, 다른 텍스트 없이` }
+          ]
+        }]
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(`API 오류: ${data.error.message}`);
+
+    const txt = data.content.map(c => c.text || '').join('');
+    const m = txt.match(/\[[\s\S]*?\]/);
+    if (!m) throw new Error('단어를 찾을 수 없어요. 더 선명한 사진을 올려보세요!');
+
+    anaWords = JSON.parse(m[0]);
+    if (!anaWords.length) throw new Error('단어가 발견되지 않았어요!');
+
+    document.getElementById('analyzingSec').style.display = 'none';
+    document.getElementById('resultSec').style.display = 'block';
+    rPreview();
+  } catch(e) {
+    document.getElementById('analyzingSec').style.display = 'none';
+    document.getElementById('errSec').style.display = 'block';
+    let msg = e.message || '알 수 없는 오류가 발생했어요.';
+    if (msg.includes('401')) msg = 'API 키가 잘못되었어요. API 키를 다시 확인해주세요.';
+    if (msg.includes('fetch')) msg = '인터넷 연결을 확인해주세요.';
+    document.getElementById('errMsg').textContent = msg;
+  }
+}
+
+function rPreview() {
+  document.getElementById('wpList').innerHTML = anaWords.map((w, i) => `
+    <div class="wp-item">
+      <span style="font-size:18px">${EMOJIS[i % EMOJIS.length]}</span>
+      <div style="flex:1">
+        <div class="wp-en">${esc(w.word)}</div>
+        <div class="wp-ko">${esc(w.korean)}</div>
+      </div>
+      <span style="background:var(--lv);color:#fff;border-radius:14px;padding:2px 8px;font-size:11px;font-family:'Jua',sans-serif">${i+1}</span>
+    </div>`).join('');
+}
+
+function resetUpload() {
+  curImg = null; anaWords = [];
+  document.getElementById('fi').value = '';
+  document.getElementById('dz').style.display = 'block';
+  document.getElementById('prevSec').style.display = 'none';
+  document.getElementById('resultSec').style.display = 'none';
+  document.getElementById('analyzingSec').style.display = 'none';
+  document.getElementById('errSec').style.display = 'none';
+  document.getElementById('analyzeArea').style.display = 'block';
+}
+
+function saveAndStudy() {
+  let added = 0;
+  anaWords.forEach(w => {
+    const k = (w.word || '').toLowerCase().trim();
+    if (k && !words.find(x => x.word === k)) {
+      words.push({ word: k, korean: w.korean, definition: w.definition || `${k} means ${w.korean}`, id: Date.now() + Math.random() });
+      added++;
+    }
+  });
+  save();
+  toast(`✨ ${added}개 단어 저장!`);
+  sp('s1');
+}
+
+// ══════════════════════════════════════════
+//  STEP 1 — FLASHCARD
+// ══════════════════════════════════════════
+function initS1(ov) {
+  fcWds = ov || [...words];
+  if (!fcWds.length) {
+    document.getElementById('s1w').style.display = 'none';
+    document.getElementById('s1e').style.display = 'block';
+    return;
+  }
+  document.getElementById('s1w').style.display = 'block';
+  document.getElementById('s1e').style.display = 'none';
+  fcIdx = 0; rFC();
+}
+
+function rFC() {
+  const w = fcWds[fcIdx], em = EMOJIS[fcIdx % EMOJIS.length];
+  document.getElementById('fce').textContent = em;
+  document.getElementById('fcw').textContent = w.word;
+  document.getElementById('fck').textContent = w.korean;
+  document.getElementById('fcd').textContent = w.definition;
+  document.getElementById('fcn').textContent = `${fcIdx+1} / ${fcWds.length}`;
+  const max = Math.min(fcWds.length, 10);
+  document.getElementById('fcdots').innerHTML = Array.from({length: max}, (_,i) =>
+    `<div class="dot${i === (fcIdx % max) ? ' a' : ''}"></div>`
+  ).join('');
+}
+
+function fmv(d) {
+  const nx = fcIdx + d;
+  if (nx < 0) { toast('첫 번째 카드예요! 🐰'); return; }
+  if (nx >= fcWds.length) {
+    showModal('🎉', '1단계 완료!', `${fcWds.length}개 단어를 모두 봤어요!\n2단계로 넘어갈까요?`, [
+      { label: '🎤 2단계 시작하기', cls: 'bp', fn() { hModal(); sp('s2'); } },
+      { label: '🔄 처음부터 다시 보기', cls: 'bo', fn() { hModal(); fcIdx = 0; rFC(); } }
+    ]);
+    return;
+  }
+  const fc = document.getElementById('fc');
+  fc.style.opacity = '0';
+  fc.style.transform = d > 0 ? 'translateX(-22px)' : 'translateX(22px)';
+  setTimeout(() => { fcIdx = nx; rFC(); fc.style.opacity = '1'; fc.style.transform = 'translateX(0)'; }, 180);
+}
+
+let ftx = 0;
+function fTS(e) { ftx = e.touches[0].clientX; }
+function fTE(e) { const dx = e.changedTouches[0].clientX - ftx; if (Math.abs(dx) > 44) fmv(dx < 0 ? 1 : -1); }
+
+// ══════════════════════════════════════════
+//  QUIZ ENGINE
+// ══════════════════════════════════════════
+function initQ(step, ov) {
+  const src = ov || [...words];
+  const w = `s${step}w`, e = `s${step}e`;
+  if (!src.length) {
+    document.getElementById(w).style.display = 'none';
+    document.getElementById(e).style.display = 'block';
+    return;
+  }
+  document.getElementById(w).style.display = 'block';
+  document.getElementById(e).style.display = 'none';
+  qs[step] = { words: shuffle([...src]), idx: 0, correct: 0, wrong: 0, wrongWords: [], step, mode: 'text' };
+  rQ(step);
+}
+
+function rQ(step) {
+  const q = qs[step];
+  if (!q || q.idx >= q.words.length) { showResult(step); return; }
+  const w = q.words[q.idx];
+  const pct = Math.round(q.idx / q.words.length * 100);
+  const em = EMOJIS[q.idx % EMOJIS.length];
+  let qtxt = '', hint = '', lang = '';
+  if (step === 2) { qtxt = w.word; hint = '한글 뜻을 입력하거나 말해보세요 (한국어)'; lang = 'ko-KR'; }
+  if (step === 3) { qtxt = w.korean; hint = '영어 단어를 입력하거나 말해보세요 (영어)'; lang = 'en-US'; }
+  if (step === 4) { qtxt = w.definition; hint = '영어 단어를 입력하거나 말해보세요'; lang = 'en-US'; }
+  const iV = q.mode === 'voice';
+
+  document.getElementById(`s${step}w`).innerHTML = `
+    <div class="qhd">
+      <div class="qcnt">${q.idx+1} / ${q.words.length}</div>
+      <div class="scrow"><div class="sch">✅ ${q.correct}</div><div class="sch">❌ ${q.wrong}</div></div>
+    </div>
+    <div class="pbw"><div class="pb" style="width:${pct}%"></div></div>
+    <div class="qcard">
+      <div class="qem">${em}</div>
+      <div class="qq">${esc(qtxt)}</div>
+      <div class="qhint">${hint}</div>
+      <div class="mtog">
+        <button class="mb ${!iV?'on':''}" onclick="setMode(${step},'text')">⌨️ 직접 입력</button>
+        <button class="mb ${iV?'on':''}" onclick="setMode(${step},'voice')">🎤 음성 입력</button>
+      </div>
+      ${iV ? `
+        <div class="vdisp" id="vd${step}"><span style="color:var(--mu);font-size:12px">🎤 버튼을 누르고 말해보세요</span></div>
+        <div class="gap8" style="margin-bottom:10px">
+          <button class="btn" id="vb${step}" style="flex:1;background:var(--lvl);color:var(--lv);border-radius:10px;height:44px;border:none;cursor:pointer;font-family:'Jua',sans-serif;font-size:13px" onclick="togV(${step},'${lang}')">🎤 누르고 말하기</button>
+          <button class="btn bs bsm" onclick="subQ(${step})">✅ 제출</button>
+        </div>
+      ` : `
+        <div class="anw"><input class="ani" id="ai${step}" placeholder="답을 입력하세요..." onkeydown="if(event.key==='Enter')subQ(${step})"></div>
+      `}
+      <div class="fb" id="fb${step}"></div>
+      <div class="qact">
+        <button class="btn bo" onclick="skipQ(${step})">건너뛰기</button>
+        <button class="btn bp" id="sb${step}" onclick="subQ(${step})">✅ 확인</button>
+      </div>
+    </div>`;
+  if (!iV) setTimeout(() => document.getElementById(`ai${step}`)?.focus(), 80);
+}
+
+function setMode(step, m) { qs[step].mode = m; stopRec(); rQ(step); }
+
+function subQ(step) {
+  const q = qs[step];
+  let val = '';
+  if (q.mode === 'voice') {
+    const vd = document.getElementById(`vd${step}`);
+    val = vd?.querySelector('[data-t]')?.textContent?.trim() || '';
+    if (!val || val.includes('버튼을 누르고')) val = '';
+  } else {
+    val = document.getElementById(`ai${step}`)?.value?.trim() || '';
+  }
+  if (!val) { toast('답을 입력해주세요! 🐰'); return; }
+
+  const w = q.words[q.idx];
+  const ok = chkAns(step, val, w);
+  const fb = document.getElementById(`fb${step}`);
+  if (ok) {
+    q.correct++;
+    fb.className = 'fb ok';
+    fb.innerHTML = `<div class="fbt">✅ 정답이에요! 대단해요! 🎉</div>`;
+  } else {
+    q.wrong++;
+    q.wrongWords.push(w);
+    const ans = step === 2 ? w.korean : w.word;
+    fb.className = 'fb ng';
+    fb.innerHTML = `<div class="fbt">❌ 아쉬워요! 정답은 <span class="fba">${esc(ans)}</span> 이에요!</div>`;
+  }
+  fb.style.display = 'block';
+  stopRec();
+  if (q.mode !== 'voice') { const ai = document.getElementById(`ai${step}`); if (ai) ai.disabled = true; }
+  const sb = document.getElementById(`sb${step}`);
+  if (sb) { sb.textContent = '➡️ 다음'; sb.onclick = () => { q.idx++; rQ(step); }; }
+}
+
+function skipQ(step) {
+  const q = qs[step];
+  q.wrong++;
+  q.wrongWords.push(q.words[q.idx]);
+  q.idx++;
+  stopRec();
+  rQ(step);
+}
+
+function chkAns(step, val, w) {
+  const v = nm(val);
+  if (step === 2) { const k = nm(w.korean); return k.includes(v) || v.includes(k); }
+  return v === nm(w.word);
+}
+
+// ══════════════════════════════════════════
+//  VOICE
+// ══════════════════════════════════════════
+function togV(step, lang) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('이 브라우저는 음성 인식을 지원하지 않아요 😢'); return; }
+  const btn = document.getElementById(`vb${step}`);
+  if (rec) { stopRec(); return; }
+  rec = new SR();
+  rec.lang = lang;
+  rec.interimResults = true;
+  rec.continuous = false;
+  rec.onstart = () => {
+    if (btn) { btn.style.background = 'var(--lv)'; btn.style.color = '#fff'; btn.textContent = '🔴 듣는 중...'; }
+    const vd = document.getElementById(`vd${step}`);
+    if (vd) vd.innerHTML = `<div style="display:flex;align-items:center;gap:6px"><div class="vwave">${Array(5).fill('<div class="vb" style="height:10px"></div>').join('')}</div><span style="font-size:12px;color:var(--lv);font-family:Jua,sans-serif;margin-left:6px">듣고 있어요...</span></div>`;
+  };
+  rec.onresult = e => {
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    const vd = document.getElementById(`vd${step}`);
+    if (vd) vd.innerHTML = `<div data-t="1" style="font-family:'Jua',sans-serif;font-size:16px">${esc(t)}</div>`;
+  };
+  rec.onend = () => { if (btn) { btn.style.background = 'var(--lvl)'; btn.style.color = 'var(--lv)'; btn.textContent = '🎤 누르고 말하기'; } rec = null; };
+  rec.onerror = e => {
+    if (btn) { btn.style.background = 'var(--lvl)'; btn.style.color = 'var(--lv)'; btn.textContent = '🎤 누르고 말하기'; }
+    rec = null;
+    if (e.error !== 'aborted') toast('음성 인식 오류! 다시 시도해주세요 😢');
+  };
+  rec.start();
+}
+
+function stopRec() { if (rec) { try { rec.stop(); } catch(e) {} rec = null; } }
+
+// ══════════════════════════════════════════
+//  RESULT
+// ══════════════════════════════════════════
+function showResult(step) {
+  const q = qs[step];
+  const total = q.words.length, pct = Math.round(q.correct / total * 100);
+  let em, msg;
+  if (pct >= 90) { em = '🏆'; msg = '완벽해요! 최고야!'; }
+  else if (pct >= 70) { em = '🌟'; msg = '잘 했어요! 거의 다 됐어!'; }
+  else if (pct >= 50) { em = '💪'; msg = '좋아요! 조금만 더!'; }
+  else { em = '🐰'; msg = '더 연습해보자!'; }
+
+  const wl = q.wrongWords.length > 0
+    ? `<div class="wl"><div class="wlt">❌ 틀린 단어 (${q.wrongWords.length}개)</div>${q.wrongWords.map(w => `<div class="wli"><span class="wlw">${esc(w.word)}</span><span class="wlk">${esc(w.korean)}</span></div>`).join('')}</div>`
+    : `<div style="text-align:center;padding:10px;color:var(--mt);font-family:'Jua',sans-serif">🎉 전부 맞췄어요!</div>`;
+
+  const ns = step < 4 ? step + 1 : null;
+  document.getElementById(`s${step}w`).innerHTML = `
+    <div class="rhero">
+      <div class="rem">${em}</div>
+      <div class="rmsg">${msg}</div>
+      <div class="rpct">${pct}%</div>
+    </div>
+    <div class="rcards">
+      <div class="rc ok"><div class="rcn">${q.correct}</div><div class="rcl">✅ 정답</div></div>
+      <div class="rc ng"><div class="rcn">${q.wrong}</div><div class="rcl">❌ 오답</div></div>
+    </div>
+    ${wl}
+    <div class="racts">
+      ${q.wrongWords.length > 0 ? `<button class="btn bd bbl" onclick="retryWrong(${step})">❌ 틀린 단어만 다시 공부하기</button>` : ''}
+      ${ns ? `<button class="btn bm bbl" onclick="sp('s${ns}')">➡️ ${ns}단계로 넘어가기!</button>` : `<button class="btn by bbl" onclick="toast('모든 단계 완료! 대단해요! 🎉🏆')">🏆 모든 단계 완료!</button>`}
+      <button class="btn bs bbl" onclick="initQ(${step})">🔄 이 단계 다시 하기</button>
+      <button class="btn bo bbl" onclick="sp('s1')">↩️ 1단계로 돌아가기</button>
+    </div>`;
+}
+
+function retryWrong(step) {
+  const ww = qs[step].wrongWords;
+  if (!ww.length) return;
+  showModal('❌', '틀린 단어 다시 하기', `${ww.length}개 틀린 단어로\n다시 공부할까요?`, [
+    { label: `✏️ ${step}단계 다시 하기`, cls: 'bp', fn() { hModal(); initQ(step, ww); } },
+    { label: '1단계부터 다시 보기', cls: 'bo', fn() { hModal(); initS1(ww); sp('s1'); } },
+    { label: '취소', cls: 'bs', fn() { hModal(); } }
+  ]);
+}
+
+// ══════════════════════════════════════════
+//  WORDBOOK
+// ══════════════════════════════════════════
+function rWB() {
+  const q = (document.getElementById('wbs')?.value || '').toLowerCase();
+  const fil = words.filter(w => !q || w.word.includes(q) || w.korean.includes(q));
+  const el = document.getElementById('wbl'), em = document.getElementById('wbe');
+  if (!words.length) { el.innerHTML = ''; em.style.display = 'block'; return; }
+  em.style.display = 'none';
+  if (!fil.length) { el.innerHTML = '<div class="es"><span class="esi">🔍</span><div class="est">검색 결과 없음</div></div>'; return; }
+  el.innerHTML = fil.map((w, i) => `
+    <div class="wi">
+      <div class="win">${i+1}</div>
+      <div class="wii"><div class="wie">${esc(w.word)}</div><div class="wik">${esc(w.korean)}</div></div>
+      <button class="wid" onclick="delW('${w.id}')">🗑️</button>
+    </div>`).join('');
+}
+
+function delW(id) { words = words.filter(w => String(w.id) !== String(id)); save(); rWB(); }
+
+function cfClear() {
+  showModal('🗑️', '전체 삭제', `단어 ${words.length}개를 모두 삭제할까요?`, [
+    { label: '⚠️ 전체 삭제', cls: 'bd', fn() { hModal(); words = []; save(); rWB(); } },
+    { label: '취소', cls: 'bo', fn() { hModal(); } }
+  ]);
+}
+
+// ══════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════
+function showModal(ic, ti, su, btns) {
+  document.getElementById('mic').textContent = ic;
+  document.getElementById('mtit').textContent = ti;
+  document.getElementById('msub').innerHTML = su.replace(/\n/g, '<br>');
+  const el = document.getElementById('mbtns');
+  el.innerHTML = btns.map((b, i) => `<button class="btn ${b.cls} bbl" onclick="_mb(${i})">${b.label}</button>`).join('');
+  el._btns = btns;
+  document.getElementById('modal').classList.add('on');
+}
+function hModal() { document.getElementById('modal').classList.remove('on'); }
+function _mb(i) { document.getElementById('mbtns')._btns[i].fn(); }
+document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) hModal(); });
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+let tt;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2500);
+}
+function showToastGlobal(msg) {
+  // Works even before app is initialized
+  let t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+// ══════════════════════════════════════════
+//  PWA SETUP
+// ══════════════════════════════════════════
+function setupPWA() {
+  // Dynamic manifest
+  const manifest = {
+    name: '단어 친구 - 영어 단어 학습',
+    short_name: '단어 친구',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#FFF5F9',
+    theme_color: '#FF85A1',
+    start_url: '.',
+    icons: []
+  };
+
+  // Generate icon with canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 192; canvas.height = 192;
+  const ctx = canvas.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 192, 192);
+  g.addColorStop(0, '#FF85A1'); g.addColorStop(1, '#C9A8FF');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(0, 0, 192, 192, 32);
+  else ctx.rect(0, 0, 192, 192);
+  ctx.fill();
+  ctx.font = '110px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('🐰', 96, 96);
+  manifest.icons = [{ src: canvas.toDataURL('image/png'), sizes: '192x192', type: 'image/png' }];
+
+  const mBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const mUrl = URL.createObjectURL(mBlob);
+  const link = document.createElement('link');
+  link.rel = 'manifest'; link.href = mUrl;
+  document.head.appendChild(link);
+
+  // Service Worker
+  const swCode = `
+    const CACHE = 'daneoV5';
+    self.addEventListener('install', e => e.waitUntil(caches.open(CACHE)));
+    self.addEventListener('fetch', e => e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
+    ));
+  `;
+  if ('serviceWorker' in navigator) {
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+  }
+
+  // Install prompt
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const banner = document.getElementById('ibanner');
+    banner.classList.add('on');
+    document.getElementById('installBtn').onclick = () => {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => { banner.classList.remove('on'); });
+    };
+  });
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function nm(s) { return (s || '').toLowerCase().trim().replace(/\s+/g, ' '); }
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// START
+init();
+</script>
+</body>
+</html>
